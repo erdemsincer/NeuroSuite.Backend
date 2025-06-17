@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using FluentValidation;
 
-namespace NeuroSuite.Auth.Application.Features.Auth.Queries.Login
+namespace NeuroSuite.Auth.Application.Features.Auth.Queries.Login;
+
+public class LoginQueryValidator : AbstractValidator<LoginQuery>
 {
-    internal class LoginQueryValidator
+    public LoginQueryValidator()
     {
+        RuleFor(x => x.Email).NotEmpty().EmailAddress();
+        RuleFor(x => x.Password).NotEmpty();
     }
 }
