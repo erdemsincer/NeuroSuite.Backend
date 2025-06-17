@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MediatR;
+using NeuroSuite.Auth.Application.Common;
 
-namespace NeuroSuite.Auth.Application.Features.Auth.Queries.Login
-{
-    internal class LoginQuery
-    {
-    }
-}
+namespace NeuroSuite.Auth.Application.Features.Auth.Queries.Login;
+
+public record LoginQuery(
+    string Email,
+    string Password
+) : IRequest<AuthenticationResult>;
