@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace NeuroSuite.Auth.Application.Common;
 
-namespace NeuroSuite.Auth.Application.Common
+public class AuthenticationResult
 {
-    internal class AuthenticationResult
-    {
-    }
+    public string Token { get; set; } = string.Empty;
+    public string RefreshToken { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
 }
