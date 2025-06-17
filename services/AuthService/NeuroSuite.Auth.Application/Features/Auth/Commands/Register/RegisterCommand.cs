@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MediatR;
+using NeuroSuite.Auth.Application.Common;
 
-namespace NeuroSuite.Auth.Application.Features.Auth.Commands.Register
-{
-    internal class RegisterCommand
-    {
-    }
-}
+namespace NeuroSuite.Auth.Application.Features.Auth.Commands.Register;
+
+public record RegisterCommand(
+    string FirstName,
+    string LastName,
+    string Email,
+    string Password
+) : IRequest<AuthenticationResult>;
