@@ -1,10 +1,9 @@
 ﻿using MediatR;
+using Microsoft.AspNet.Identity;
+using Microsoft.Extensions.Logging;
 using NeuroSuite.Auth.Application.Common;
 using NeuroSuite.Auth.Domain.Entities;
 using NeuroSuite.Auth.Domain.Interfaces;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNet.Identity;
 
 namespace NeuroSuite.Auth.Application.Features.Auth.Commands.Register;
 
@@ -12,13 +11,13 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Authentic
 {
     private readonly IUserRepository _userRepository;
     private readonly IJwtProvider _jwtProvider;
-    private readonly IPasswordHasher _passwordHasher;
+    private readonly Domain.Interfaces.IPasswordHasher _passwordHasher;
     private readonly ILogger<RegisterCommandHandler> _logger;
 
     public RegisterCommandHandler(
         IUserRepository userRepository,
         IJwtProvider jwtProvider,
-        IPasswordHasher passwordHasher,
+        Domain.Interfaces.IPasswordHasher passwordHasher,
         ILogger<RegisterCommandHandler> logger)
     {
         _userRepository = userRepository;
