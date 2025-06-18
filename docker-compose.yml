@@ -1,0 +1,83 @@
+﻿version: '3.9'
+
+services:
+
+  # 🔐 AuthService PostgreSQL
+  auth-db:
+    image: postgres:15
+    container_name: auth-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: authdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - authdb-data:/var/lib/postgresql/data
+    networks:
+      - neurosuite-net
+
+  # 🔐 AuthService API
+  auth-api:
+    build:
+      context: .                           # <-- Çözüm dizini
+      dockerfile: services/AuthService/NeuroSuite.Auth.API/Dockerfile
+    container_name: auth-api
+    ports:
+      - "6001:8080"
+    depends_on:
+      - auth-db
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    networks:
+      - neurosuite-net
+
+  # 👤 UserService PostgreSQL
+  user-db:
+    image: postgres:15
+    container_name: user-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: userdb
+    ports:
+      - "5433:5432"
+    volumes:
+      - userdb-data:/var/lib/postgresql/data
+    networks:
+      - neurosuite-net
+
+  # 👤 UserService API
+  user-api:
+    build:
+      context: .
+      dockerfile: services/UserService/NeuroSuite.User.API/Dockerfile
+    container_name: user-api
+    ports:
+      - "6002:8080"
+    depends_on:
+      - user-db
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    networks:
+      - neurosuite-net
+
+  # 📡 RabbitMQ + Yönetim Arayüzü
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"     # AMQP bağlantı
+      - "15672:15672"   # Yönetim UI
+    networks:
+      - neurosuite-net
+
+volumes:
+  authdb-data:
+  userdb-data:
+
+networks:
+  neurosuite-net:
+    driver: bridge

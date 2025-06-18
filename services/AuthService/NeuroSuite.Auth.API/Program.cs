@@ -5,13 +5,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NeuroSuite.Auth.Application.Features.Auth.Commands.Register;
 using NeuroSuite.Auth.Domain.Interfaces;
+using NeuroSuite.Auth.Infrastructure.Messaging;
 using NeuroSuite.Auth.Infrastructure.Persistence;
 using NeuroSuite.Auth.Infrastructure.Repositories;
 using NeuroSuite.Auth.Infrastructure.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// PostgreSQL baðlantýsý
+// PostgreSQL
 builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -21,21 +22,19 @@ builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(RegisterCommandHandler).Assembly);
 });
 
-
 // FluentValidation
 builder.Services.AddValidatorsFromAssembly(typeof(RegisterCommandHandler).Assembly);
 builder.Services.AddFluentValidationAutoValidation();
 
-// Scoped baðýmlýlýklar
+// Dependency Injection
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
+builder.Services.AddScoped<IRabbitMQPublisher, RabbitMQPublisher>();
 
-// JWT ayarlarýný yükle
-builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 
-// Auth & Swagger
-builder.Services.AddAuthentication().AddJwtBearer(); // daha sonra config yapýlacak
+// Swagger
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -45,8 +44,12 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
-app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+    db.Database.Migrate();
+}
 
 app.Run();
