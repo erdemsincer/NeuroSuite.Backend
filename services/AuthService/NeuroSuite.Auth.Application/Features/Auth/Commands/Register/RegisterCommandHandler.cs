@@ -1,9 +1,9 @@
 ﻿using MediatR;
-using Microsoft.AspNet.Identity;
 using Microsoft.Extensions.Logging;
 using NeuroSuite.Auth.Application.Common;
 using NeuroSuite.Auth.Domain.Entities;
 using NeuroSuite.Auth.Domain.Interfaces;
+using NeuroSuite.BuildingBlocks.Contracts.Auth;
 
 namespace NeuroSuite.Auth.Application.Features.Auth.Commands.Register;
 
@@ -11,19 +11,22 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Authentic
 {
     private readonly IUserRepository _userRepository;
     private readonly IJwtProvider _jwtProvider;
-    private readonly Domain.Interfaces.IPasswordHasher _passwordHasher;
+    private readonly IPasswordHasher _passwordHasher;
     private readonly ILogger<RegisterCommandHandler> _logger;
+    private readonly IRabbitMQPublisher _eventPublisher;
 
     public RegisterCommandHandler(
         IUserRepository userRepository,
         IJwtProvider jwtProvider,
-        Domain.Interfaces.IPasswordHasher passwordHasher,
-        ILogger<RegisterCommandHandler> logger)
+        IPasswordHasher passwordHasher,
+        ILogger<RegisterCommandHandler> logger,
+        IRabbitMQPublisher eventPublisher)
     {
         _userRepository = userRepository;
         _jwtProvider = jwtProvider;
         _passwordHasher = passwordHasher;
         _logger = logger;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<AuthenticationResult> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -44,6 +47,15 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Authentic
         };
 
         await _userRepository.AddAsync(user);
+
+        // 🔊 Event yayınla
+        _eventPublisher.PublishUserCreated(new UserCreatedEvent
+        {
+            Id = user.Id,
+            Email = user.Email,
+            FullName = $"{user.FirstName} {user.LastName}",
+            Role = user.Role
+        });
 
         var token = _jwtProvider.GenerateToken(user);
 
